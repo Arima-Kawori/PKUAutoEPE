@@ -43,10 +43,11 @@ def go_to_venue(driver):
     # WebDriverWait(driver, 10).until(
     #     EC.visibility_of_element_located((By.CLASS_NAME, 'searchCondition')))
     # driver.find_elements_by_class_name('venueDetailBottomItem')[2].click()
-    
+    print('Getting into the venue page...')
     driver.get('https://epe.pku.edu.cn/venue/pku/venue-reservation/115')
     WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.CLASS_NAME, 'ivu-table-body')))
+        EC.visibility_of_element_located((By.CLASS_NAME, 'reserveBlock')))
+    print('In the venue page now.')
 
 
 # date: DD in YYYY-MM-DD
@@ -90,12 +91,14 @@ def get_date(driver, date):
         
         # detect if reservation for the given date is opened
         if len(disabled_date_picker_cells) >= TOTAL_DATE_CELLS - cell_no:
-            driver.find_elements_by_class_name('btnMaring')[2].click()
-            print(f'Reservation for {date_to_do} not opened yet. Refresh date list')
             
-            # may cause bug here?
-            # since I don't know after the refresh button is clicked, whether there's any
-            #  'reserveBlock'
+            # since the refresh button aside the date input-box has no effect
+            # driver.find_elements_by_class_name('btnMaring')[2].click()
+
+            driver.refresh()
+
+            print(f'Reservation for {date_to_do} not opened yet. Refresh the whole page')
+
             WebDriverWait(driver, 10).until(
                 EC.visibility_of_element_located((By.CLASS_NAME, 'reserveBlock')))
         else:
@@ -116,7 +119,8 @@ def get_date(driver, date):
                 return
             
             # may cause bug here?
-            # same cause as above
+            # since I don't know after the date is changed, whether there's any
+            #  'reserveBlock'
             WebDriverWait(driver, 10).until(
                 EC.visibility_of_element_located((By.CLASS_NAME, 'reserveBlock')))
             print(f'date {date_to_do} selected!')
@@ -161,22 +165,32 @@ def reserve(driver, times, phone_number):
             print('selection failed for block {b}, which is for {b+8}:00~{b+9}:00')
             continue
 
+    if selected_block == 0:
+        print('no block selected. reserve failed.')
+        return
+
     # check-box for "I've read license"
     driver.find_element_by_class_name('ivu-checkbox-input').click()
     time.sleep(0.05)
 
-    # click submit
+    # click submit for step 1
+    submitButton = driver.find_elements_by_class_name('payHandleItem')[1]
+    print("step1:", submitButton.text)
     driver.find_elements_by_class_name('payHandleItem')[1].click()
+    
     WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.CLASS_NAME, 'ivu-alert-message')))
+        EC.visibility_of_element_located((By.CLASS_NAME, 'reservation-step-two')))
         
     # input phone number
     # influenced by browser cookie here
     # driver.find_element_by_class_name('ivu-input.ivu-input-default').send_keys(phone_number)
     # time.sleep(0.05)
     
-    # click submit
-    driver.find_elements_by_class_name('payHandleItem')[1].click()
+    # click submit for step 2
+
+    submitButton = driver.find_elements_by_class_name('payHandleItem')[1]
+    print("step2:", submitButton.text)
+    submitButton.click()
     try:
         WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.CLASS_NAME, 'payMent')))

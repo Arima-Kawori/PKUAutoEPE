@@ -44,7 +44,6 @@ if __name__ == '__main__':
             executable_path=sys_path(browser="chromedriver"),
             service_args=['--ignore-ssl-errors=true', '--ssl-protocol=TLSv1'])
     print('Driver Launched\n')
-
     go('config.ini')
 
     driver_pjs.quit()
